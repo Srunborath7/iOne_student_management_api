@@ -6,3 +6,4 @@ class User:
     username: str
     password: str
     role: str
+    is_active: bool = True
