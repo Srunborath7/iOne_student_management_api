@@ -10,7 +10,7 @@ class StudentCreate(BaseModel):
 class StudentUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1)
     email: str | None = None
-    phone: str | None = Field(max_length=11)
+    phone: str | None = Field(default=None, max_length=11)
     age: int | None = Field(default=None, ge=15, le=100)
     major: str | None = None
 
