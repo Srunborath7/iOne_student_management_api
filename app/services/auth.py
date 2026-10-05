@@ -1,7 +1,5 @@
 # app/services/auth.py
 from abc import ABC, abstractmethod
-from typing import Optional
-
 from app.core.config import settings
 from app.core.exceptions import Conflict, NotFound, Unauthorized
 from app.core.security import (
