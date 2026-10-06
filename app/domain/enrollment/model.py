@@ -17,7 +17,6 @@ class Enrollment:
     id: int
     student_id: int
     course_id: int
-    classroom: str
     start_date: date
     end_date: date | None = None
     status: EnrollmentStatus = EnrollmentStatus.PENDING

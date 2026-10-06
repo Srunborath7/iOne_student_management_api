@@ -4,6 +4,9 @@ from app.domain.course.model import Course
 from app.repositories.course import ICourseRepository, course_repo
 from app.core.exceptions import Conflict, NotFound
 from app.domain.course.schema import CourseCreate, CourseUpdate
+from app.repositories.enrollment import enrollment_repo
+from app.repositories.student import student_repo
+from app.repositories.teacher import teacher_repo
 
 class ICourseService(ABC):
 
@@ -18,6 +21,37 @@ class CourseService(ICourseService):
 
     def list_course(self, q: Optional[str] = None) -> List[Course]:
         return self._course_repo.search(q) if q else self._course_repo.list_all()
+
+    def list_course_groups(self, q: Optional[str] = None) -> list[dict]:
+        return [self._course_group(course) for course in self.list_course(q)]
+
+    def get_course_group(self, course_id: int) -> dict:
+        course = self.get_course(course_id)
+        return self._course_group(course)
+
+    @staticmethod
+    def _course_group(course: Course) -> dict:
+        teacher = teacher_repo.get(course.teacher_id)
+        students_by_id = {
+            enrollment.student_id: student_repo.get(enrollment.student_id)
+            for enrollment in enrollment_repo.find_by_course_id(course.id)
+        }
+        return {
+            "id": course.id,
+            "name": course.name,
+            "status": course.status,
+            "teacher_id": course.teacher_id,
+            "teacher_name": teacher.name if teacher else None,
+            "start_date": course.start_date,
+            "end_date": course.end_date,
+            "description": course.description,
+            "classroom": course.classroom,
+            "students": [
+                {"id": student.id, "name": student.name}
+                for student in students_by_id.values()
+                if student is not None
+            ],
+        }
 
     def get_course(self,student_id: int) -> Course:
         course = self._course_repo.get(student_id)
@@ -46,6 +80,7 @@ class CourseService(ICourseService):
 
         for field, val in update_data.items():
             setattr(course, field, val)
+        return self._course_repo.update(course_id, course)
 
     def delete_course(self, course_id: int) -> None:
         course = self._course_repo.get(course_id)
@@ -73,6 +108,3 @@ def update_course(course_id: int, data: CourseUpdate) -> Course:
 
 def delete_course(course_id: int) -> None:
     course_service.delete_course(course_id)
-
-
-

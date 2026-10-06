@@ -12,6 +12,15 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class UserUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    username: str | None = Field(default=None, min_length=3, max_length=50)
+    password: str | None = Field(default=None, min_length=5, max_length=100)
+    role: str | None = Field(default=None, min_length=1)
+    is_active: bool | None = None
+
+
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int

@@ -13,6 +13,7 @@ from app.domain.user.schema import (
     LoginRequest,
     LoginResponse,
     RegisterRequest,
+    UserUpdate,
     UserOut,
 )
 from app.repositories.user import IUserRepository, user_repo
@@ -111,6 +112,31 @@ class AuthService(IAuthService):
         if not user:
             raise NotFound("User")
         return user
+
+    def list_users(self) -> list[User]:
+        return self._user_repo.list_all()
+
+    def update_user(self, user_id: int, data: UserUpdate) -> User:
+        user = self.get_user(user_id)
+        update_data = data.model_dump(exclude_unset=True)
+
+        if "username" in update_data:
+            username = update_data["username"].strip()
+            existing = self._user_repo.find_by_username(username)
+            if existing and existing.id != user_id:
+                raise Conflict("Username already registered!")
+            update_data["username"] = username
+
+        if "password" in update_data:
+            update_data["password"] = self._hasher.hash(update_data["password"])
+
+        for field, value in update_data.items():
+            setattr(user, field, value)
+        return self._user_repo.update(user_id, user)
+
+    def delete_user(self, user_id: int) -> None:
+        self.get_user(user_id)
+        self._user_repo.delete(user_id)
 
     def get_current_user(self, token: str) -> User:
         payload = self._token_service.decode_token(token)

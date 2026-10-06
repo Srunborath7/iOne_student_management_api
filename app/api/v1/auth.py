@@ -7,6 +7,7 @@ from app.domain.user.schema import (
     LoginRequest,
     LoginResponse,
     RegisterRequest,
+    UserUpdate,
     UserOut,
 )
 from app.services.auth import AuthService, get_auth_service
@@ -60,6 +61,44 @@ def get_current_user_profile(
     Decodes the Bearer token in the Authorization header and returns current user info.
     """
     return UserOut.model_validate(current_user)
+
+
+@router.get(
+    "/users",
+    response_model=list[UserOut],
+    status_code=status.HTTP_200_OK,
+    summary="Get all users",
+)
+def list_users(service: AuthService = Depends(get_auth_service)):
+    """Return all user profiles without password hashes."""
+    return [UserOut.model_validate(user) for user in service.list_users()]
+
+
+@router.put(
+    "/{user_id}",
+    response_model=UserOut,
+    status_code=status.HTTP_200_OK,
+    summary="Update a user",
+)
+def update_user(
+    user_id: int,
+    data: UserUpdate,
+    service: AuthService = Depends(get_auth_service),
+):
+    return service.update_user(user_id, data)
+
+
+@router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Delete a user",
+)
+def delete_user(
+    user_id: int,
+    service: AuthService = Depends(get_auth_service),
+):
+    service.delete_user(user_id)
+    return {"message": f"User {user_id} deleted successfully"}
 
 
 @router.get(

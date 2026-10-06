@@ -13,7 +13,6 @@ def _check_dates(start: date | None, end: date | None) -> None:
 class EnrollmentBase(BaseModel):
     student_id: int = Field(gt=0)
     course_id: int = Field(gt=0)
-    classroom: str = Field(min_length=1, max_length=50)
     start_date: date
     end_date: date | None = None
     status: EnrollmentStatus = EnrollmentStatus.PENDING
@@ -37,7 +36,6 @@ class EnrollmentUpdate(BaseModel):
 
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
-    classroom: str | None = Field(default=None, min_length=1, max_length=50)
     start_date: date | None = None
     end_date: date | None = None
     status: EnrollmentStatus | None = None
